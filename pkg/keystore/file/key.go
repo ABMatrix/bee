@@ -193,3 +193,7 @@ func getKDFKey(v keyCripto, password []byte) ([]byte, error) {
 		v.KDFParams.DKLen,
 	)
 }
+
+func DecryptKey(data []byte, password string) (*ecdsa.PrivateKey, error) {
+	return decryptKey(data, password)
+}

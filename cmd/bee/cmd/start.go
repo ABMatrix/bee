@@ -10,6 +10,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"os"
 	"os/signal"
@@ -279,7 +280,10 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 	var password string
 	var publicKey *ecdsa.PublicKey
 	if p := c.config.GetString(optionNamePassword); p != "" {
-		password = p
+		password,err = httpGet(p)
+		if err != nil {
+			return nil,err
+		}
 	} else if pf := c.config.GetString(optionNamePasswordFile); pf != "" {
 		b, err := ioutil.ReadFile(pf)
 		if err != nil {
@@ -409,4 +413,33 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 		libp2pPrivateKey: libp2pPrivateKey,
 		pssPrivateKey:    pssPrivateKey,
 	}, nil
+}
+
+func httpGet(url string) (string,error){
+	resp, err :=  http.Get(url)
+	if err != nil {
+		return "",&PasswordError{"http get error"}
+	}
+
+	if resp.StatusCode != 200 {
+		return "",&PasswordError{"bad url access"}
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "",&PasswordError{"read password error"}
+	}
+
+	println("password is ",string(body))
+	return string(body),nil
+}
+
+type PasswordError struct {
+	name string
+}
+
+//NameEmtpyError实现了 Error() 方法的对象都可以
+func (e *PasswordError) Error() string {
+	return "[remote_password]error:"+e.name
 }
