@@ -169,6 +169,12 @@ func (t *transactionService) getStoredTransaction(txHash common.Hash) (*storedTr
 	return &tx, nil
 }
 
+func increaseGasPrice(gasPrice *big.Int) {
+	// increase 20%
+	gasPrice.Div(gasPrice, big.NewInt(5))
+	gasPrice.Mul(gasPrice, big.NewInt(6))
+}
+
 // prepareTransaction creates a signable transaction based on a request.
 func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64) (tx *types.Transaction, err error) {
 	var gasLimit uint64
@@ -191,11 +197,13 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 	var gasPrice *big.Int
 	if request.GasPrice == nil {
 		gasPrice, err = backend.SuggestGasPrice(ctx)
+		increaseGasPrice(gasPrice)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		gasPrice = request.GasPrice
+		increaseGasPrice(gasPrice)
 	}
 
 	if request.To != nil {
