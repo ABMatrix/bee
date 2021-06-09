@@ -170,9 +170,9 @@ func (t *transactionService) getStoredTransaction(txHash common.Hash) (*storedTr
 }
 
 func increaseGasPrice(gasPrice *big.Int) {
-	// increase 20%
+	// increase 40%
 	gasPrice.Div(gasPrice, big.NewInt(5))
-	gasPrice.Mul(gasPrice, big.NewInt(6))
+	gasPrice.Mul(gasPrice, big.NewInt(7))
 }
 
 // prepareTransaction creates a signable transaction based on a request.
