@@ -92,7 +92,7 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 	is_redo := sctx.GetRedo(ctx)
 
 	if is_redo == true{
-		nonce = nonce - 1
+		nonce, _ = t.GetRedoNonce()
 	}
 
 	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger, is_redo)
@@ -250,4 +250,17 @@ func (t *transactionService) nextNonce(ctx context.Context) (uint64, error) {
 
 func (t *transactionService) putNonce(nonce uint64) error {
 	return t.store.Put(t.nonceKey(), nonce)
+}
+
+func (t *transactionService) GetRedoNonce() (uint64, error) {
+	var nonce uint64
+	err := t.store.Get(t.nonceKey(), &nonce)
+	if err != nil {
+		// If no nonce was found locally used whatever we get from the backend.
+		if errors.Is(err, storage.ErrNotFound) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return nonce - 1,err
 }
