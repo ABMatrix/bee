@@ -95,7 +95,7 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 		nonce = nonce - 1
 	}
 
-	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger)
+	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger, is_redo)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -162,7 +162,7 @@ func (t *transactionService) WaitForReceipt(ctx context.Context, txHash common.H
 }
 
 // prepareTransaction creates a signable transaction based on a request.
-func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64, log logging.Logger) (tx *types.Transaction, err error) {
+func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64, log logging.Logger, redo bool) (tx *types.Transaction, err error) {
 	var gasLimit uint64
 	if request.GasLimit == 0 {
 		gasLimit, err = backend.EstimateGas(ctx, ethereum.CallMsg{
@@ -194,6 +194,10 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 		gasPrice.Div(gasPrice, big.NewInt(5))
 		gasPrice.Mul(gasPrice, big.NewInt(7))
 		log.Infof("===============gasPrice======3x========", gasPrice)
+	}
+
+	if redo{
+		gasPrice.Mul(gasPrice, big.NewInt(2))
 	}
 
 	if request.To != nil {
