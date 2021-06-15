@@ -119,12 +119,9 @@ Welcome to the Swarm.... Bzzz Bzzzz Bzzzz
 				return err
 			}
 
-			var keyDir string
-			if c.config.GetString(optionNameKeyDir) == ""{
+			var keyDir = c.config.GetString(optionNameKeyDir)
+			if keyDir == "" {
 				keyDir = c.config.GetString(optionNameDataDir)
-			} else{
-				keyDir = c.config.GetString(optionNameKeyDir)
-
 			}
 
 			b, err := node.NewBee(c.config.GetString(optionNameP2PAddr), signerConfig.address, *signerConfig.publicKey, signerConfig.signer, c.config.GetUint64(optionNameNetworkID), logger, signerConfig.libp2pPrivateKey, signerConfig.pssPrivateKey, node.Options{
@@ -281,12 +278,9 @@ func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (co
 		logger.Warning("data directory not provided, keys are not persisted")
 	} else {
 
-		var keyDir string
-		if c.config.GetString(optionNameKeyDir) == ""{
+		var keyDir = c.config.GetString(optionNameKeyDir)
+		if keyDir == "" {
 			keyDir = c.config.GetString(optionNameDataDir)
-		} else{
-			keyDir = c.config.GetString(optionNameKeyDir)
-
 		}
 
 		keystore = filekeystore.New(filepath.Join(keyDir, "keys"))
