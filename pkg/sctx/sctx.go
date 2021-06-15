@@ -29,6 +29,7 @@ type (
 	targetsContextKey struct{}
 	gasPriceKey       struct{}
 	gasLimitKey       struct{}
+	reDoKey       struct{}
 )
 
 // SetHost sets the http request host in the context
@@ -111,4 +112,17 @@ func GetGasPrice(ctx context.Context) *big.Int {
 		return v
 	}
 	return nil
+}
+
+func SetRedo(ctx context.Context, redo bool) context.Context {
+	return context.WithValue(ctx, reDoKey{}, redo)
+
+}
+
+func GetRedo(ctx context.Context) bool {
+	v, ok := ctx.Value(reDoKey{}).(bool)
+	if ok {
+		return v
+	}
+	return false
 }

@@ -7,6 +7,7 @@ package transaction
 import (
 	"errors"
 	"fmt"
+	"github.com/ethersphere/bee/pkg/sctx"
 	"math/big"
 	"sync"
 	"time"
@@ -86,6 +87,12 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 	nonce, err := t.nextNonce(ctx)
 	if err != nil {
 		return common.Hash{}, err
+	}
+
+	is_redo := sctx.GetRedo(ctx)
+
+	if is_redo == true{
+		nonce = nonce - 1
 	}
 
 	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger)

@@ -244,6 +244,50 @@ func (s *Service) swapCashoutHandler(w http.ResponseWriter, r *http.Request) {
 	jsonhttp.OK(w, swapCashoutResponse{TransactionHash: txHash.String()})
 }
 
+func (s *Service) swapReCashoutHandler(w http.ResponseWriter, r *http.Request) {
+	addr := mux.Vars(r)["peer"]
+	peer, err := swarm.ParseHexAddress(addr)
+	if err != nil {
+		s.logger.Debugf("debug api: cashout peer: invalid peer address %s: %v", addr, err)
+		s.logger.Errorf("debug api: cashout peer: invalid peer address %s", addr)
+		jsonhttp.NotFound(w, errInvalidAddress)
+		return
+	}
+
+	ctx := r.Context()
+	if price, ok := r.Header[gasPriceHeader]; ok {
+		p, ok := big.NewInt(0).SetString(price[0], 10)
+		if !ok {
+			s.logger.Error("debug api: cashout peer: bad gas price")
+			jsonhttp.BadRequest(w, errBadGasPrice)
+			return
+		}
+		ctx = sctx.SetGasPrice(ctx, p)
+	}
+
+	if limit, ok := r.Header[gasLimitHeader]; ok {
+		l, err := strconv.ParseUint(limit[0], 10, 64)
+		if err != nil {
+			s.logger.Debugf("debug api: cashout peer: bad gas limit: %v", err)
+			s.logger.Error("debug api: cashout peer: bad gas limit")
+			jsonhttp.BadRequest(w, errBadGasLimit)
+			return
+		}
+		ctx = sctx.SetGasLimit(ctx, l)
+	}
+
+	ctx = sctx.SetRedo(ctx,true)
+	txHash, err := s.swap.CashCheque(ctx, peer)
+	if err != nil {
+		s.logger.Debugf("debug api: cashout peer: cannot cash %s: %v", addr, err)
+		s.logger.Errorf("debug api: cashout peer: cannot cash %s", addr)
+		jsonhttp.InternalServerError(w, errCannotCash)
+		return
+	}
+
+	jsonhttp.OK(w, swapCashoutResponse{TransactionHash: txHash.String()})
+}
+
 type swapCashoutStatusResult struct {
 	Recipient  common.Address `json:"recipient"`
 	LastPayout *big.Int       `json:"lastPayout"`
