@@ -91,7 +91,7 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 
 	is_redo := sctx.GetRedo(ctx)
 
-	if is_redo == true{
+	if is_redo == true {
 		nonce, err = t.GetRedoNonce()
 		if err != nil {
 			return common.Hash{}, err
@@ -199,7 +199,7 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 		log.Infof("===============gasPrice======3x========", gasPrice)
 	}
 
-	if redo{
+	if redo {
 		gasPrice.Mul(gasPrice, big.NewInt(2))
 	}
 

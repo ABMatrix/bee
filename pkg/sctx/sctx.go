@@ -29,7 +29,7 @@ type (
 	targetsContextKey struct{}
 	gasPriceKey       struct{}
 	gasLimitKey       struct{}
-	reDoKey       struct{}
+	reDoKey           struct{}
 )
 
 // SetHost sets the http request host in the context

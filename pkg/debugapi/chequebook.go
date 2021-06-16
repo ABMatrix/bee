@@ -276,7 +276,7 @@ func (s *Service) swapReCashoutHandler(w http.ResponseWriter, r *http.Request) {
 		ctx = sctx.SetGasLimit(ctx, l)
 	}
 
-	ctx = sctx.SetRedo(ctx,true)
+	ctx = sctx.SetRedo(ctx, true)
 	txHash, err := s.swap.CashCheque(ctx, peer)
 	if err != nil {
 		s.logger.Debugf("debug api: cashout peer: cannot cash %s: %v", addr, err)
