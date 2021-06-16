@@ -57,7 +57,7 @@ func (m *factoryMock) ERC20Address(ctx context.Context) (common.Address, error) 
 	return m.erc20Address(ctx)
 }
 
-func (m *factoryMock) Deploy(ctx context.Context, issuer common.Address, defaultHardDepositTimeoutDuration *big.Int) (common.Hash, error) {
+func (m *factoryMock) Deploy(ctx context.Context, issuer common.Address, defaultHardDepositTimeoutDuration *big.Int, nonce common.Hash) (common.Hash, error) {
 	return m.deploy(ctx, issuer, defaultHardDepositTimeoutDuration)
 }
 
