@@ -215,6 +215,7 @@ func NewBee(addr string, swarmAddress swarm.Address, publicKey ecdsa.PublicKey, 
 			chainID,
 			transactionService,
 			o.SwapFactoryAddress,
+			nil,
 		)
 		if err != nil {
 			return nil, err
