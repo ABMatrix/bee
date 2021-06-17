@@ -31,10 +31,12 @@ func wrapGasprice(gasprice *big.Int) *big.Int {
 	return transaction.IncreaseGasPrice(gasprice)
 }
 
-func TestGasPrice(t *testing.T) {
+func TestIncreaseGasPrice(t *testing.T) {
 	gasprice := big.NewInt(20)
 	gasprice = transaction.IncreaseGasPrice(gasprice)
-	fmt.Printf("%d", gasprice)
+	if gasprice.Cmp(big.NewInt(28)) != 0 {
+		t.Fatalf("wanted 28, got %d", gasprice)
+	}
 }
 
 func signerMockForTransaction(signedTx *types.Transaction, sender common.Address, signerChainID *big.Int, t *testing.T) crypto.Signer {
