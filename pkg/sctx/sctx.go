@@ -116,7 +116,6 @@ func GetGasPrice(ctx context.Context) *big.Int {
 
 func SetRedo(ctx context.Context, redo bool) context.Context {
 	return context.WithValue(ctx, redoKey{}, redo)
-
 }
 
 func GetRedo(ctx context.Context) bool {
