@@ -7,10 +7,11 @@ package transaction
 import (
 	"errors"
 	"fmt"
-	"github.com/ethersphere/bee/pkg/sctx"
 	"math/big"
 	"sync"
 	"time"
+
+	"github.com/ethersphere/bee/pkg/sctx"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -89,16 +90,7 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 		return common.Hash{}, err
 	}
 
-	isRedo := sctx.GetRedo(ctx)
-
-	if isRedo {
-		nonce, err = t.GetRedoNonce()
-		if err != nil {
-			return common.Hash{}, err
-		}
-	}
-
-	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger, isRedo)
+	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger)
 	if err != nil {
 		return common.Hash{}, err
 	}
@@ -172,7 +164,7 @@ func IncreaseGasPrice(gasPrice *big.Int) *big.Int {
 }
 
 // prepareTransaction creates a signable transaction based on a request.
-func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64, log logging.Logger, redo bool) (tx *types.Transaction, err error) {
+func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64, log logging.Logger) (tx *types.Transaction, err error) {
 	var gasLimit uint64
 	if request.GasLimit == 0 {
 		gasLimit, err = backend.EstimateGas(ctx, ethereum.CallMsg{
@@ -200,7 +192,7 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 		log.Infof("===============gasPrice==============", gasPrice)
 	}
 
-	if redo {
+	if sctx.GetRedo(ctx) {
 		gasPrice.Mul(gasPrice, big.NewInt(2))
 	}
 
@@ -244,27 +236,15 @@ func (t *transactionService) nextNonce(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 
+	if sctx.GetRedo(ctx) || nonce >= onchainNonce {
+		return nonce, nil
+	}
+
 	// If the nonce onchain is larger than what we have there were external
 	// transactions and we need to update our nonce.
-	if onchainNonce > nonce {
-		return onchainNonce, nil
-	}
-	return nonce, nil
+	return onchainNonce, nil
 }
 
 func (t *transactionService) putNonce(nonce uint64) error {
 	return t.store.Put(t.nonceKey(), nonce)
-}
-
-func (t *transactionService) GetRedoNonce() (uint64, error) {
-	var nonce uint64
-	err := t.store.Get(t.nonceKey(), &nonce)
-	if err != nil {
-		// If no nonce was found locally used whatever we get from the backend.
-		if errors.Is(err, storage.ErrNotFound) {
-			return 0, err
-		}
-		return 0, err
-	}
-	return nonce - 1, nil
 }
