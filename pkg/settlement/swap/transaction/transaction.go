@@ -156,8 +156,8 @@ func (t *transactionService) WaitForReceipt(ctx context.Context, txHash common.H
 
 func IncreaseGasPrice(gasPrice *big.Int) *big.Int {
 	// increase 40%
-	gasPrice.Div(gasPrice, big.NewInt(5))
 	gasPrice.Mul(gasPrice, big.NewInt(7))
+	gasPrice.Div(gasPrice, big.NewInt(5))
 	return gasPrice
 }
 
