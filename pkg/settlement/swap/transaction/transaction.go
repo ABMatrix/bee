@@ -89,16 +89,16 @@ func (t *transactionService) Send(ctx context.Context, request *TxRequest) (txHa
 		return common.Hash{}, err
 	}
 
-	is_redo := sctx.GetRedo(ctx)
+	isRedo := sctx.GetRedo(ctx)
 
-	if is_redo == true {
+	if isRedo {
 		nonce, err = t.GetRedoNonce()
 		if err != nil {
 			return common.Hash{}, err
 		}
 	}
 
-	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger, is_redo)
+	tx, err := prepareTransaction(ctx, request, t.sender, t.backend, nonce, t.logger, isRedo)
 	if err != nil {
 		return common.Hash{}, err
 	}
