@@ -164,6 +164,13 @@ func (t *transactionService) WaitForReceipt(ctx context.Context, txHash common.H
 	}
 }
 
+func IncreaseGasPrice(gasPrice *big.Int) *big.Int {
+	// increase 40%
+	gasPrice.Mul(gasPrice, big.NewInt(7))
+	gasPrice.Div(gasPrice, big.NewInt(5))
+	return gasPrice
+}
+
 // prepareTransaction creates a signable transaction based on a request.
 func prepareTransaction(ctx context.Context, request *TxRequest, from common.Address, backend Backend, nonce uint64, log logging.Logger, redo bool) (tx *types.Transaction, err error) {
 	var gasLimit uint64
@@ -183,20 +190,14 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 	var gasPrice *big.Int
 	if request.GasPrice == nil {
 		gasPrice, err = backend.SuggestGasPrice(ctx)
-		log.Infof("===============gasPrice==============", gasPrice)
-		// increase 20%
-		gasPrice.Div(gasPrice, big.NewInt(5))
-		gasPrice.Mul(gasPrice, big.NewInt(7))
+		IncreaseGasPrice(gasPrice)
 		log.Infof("===============gasPrice======3x========", gasPrice)
 		if err != nil {
 			return nil, err
 		}
 	} else {
+		IncreaseGasPrice(gasPrice)
 		log.Infof("===============gasPrice==============", gasPrice)
-		// increase 20%
-		gasPrice.Div(gasPrice, big.NewInt(5))
-		gasPrice.Mul(gasPrice, big.NewInt(7))
-		log.Infof("===============gasPrice======3x========", gasPrice)
 	}
 
 	if redo {

@@ -10,7 +10,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
-
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -120,8 +119,14 @@ Welcome to the Swarm.... Bzzz Bzzzz Bzzzz
 				return err
 			}
 
+			var keyDir = c.config.GetString(optionNameKeyDir)
+			if keyDir == "" {
+				keyDir = c.config.GetString(optionNameDataDir)
+			}
+
 			b, err := node.NewBee(c.config.GetString(optionNameP2PAddr), signerConfig.address, *signerConfig.publicKey, signerConfig.signer, c.config.GetUint64(optionNameNetworkID), logger, signerConfig.libp2pPrivateKey, signerConfig.pssPrivateKey, node.Options{
 				DataDir:                  c.config.GetString(optionNameDataDir),
+				KeyDir:                   keyDir,
 				DBCapacity:               c.config.GetUint64(optionNameDBCapacity),
 				DBOpenFilesLimit:         c.config.GetUint64(optionNameDBOpenFilesLimit),
 				DBBlockCacheCapacity:     c.config.GetUint64(optionNameDBBlockCacheCapacity),
@@ -267,11 +272,18 @@ func waitForClef(logger logging.Logger, maxRetries uint64, endpoint string) (ext
 
 func (c *command) configureSigner(cmd *cobra.Command, logger logging.Logger) (config *signerConfig, err error) {
 	var keystore keystore.Service
+
 	if c.config.GetString(optionNameDataDir) == "" {
 		keystore = memkeystore.New()
 		logger.Warning("data directory not provided, keys are not persisted")
 	} else {
-		keystore = filekeystore.New(filepath.Join(c.config.GetString(optionNameDataDir), "keys"))
+
+		var keyDir = c.config.GetString(optionNameKeyDir)
+		if keyDir == "" {
+			keyDir = c.config.GetString(optionNameDataDir)
+		}
+
+		keystore = filekeystore.New(filepath.Join(keyDir, "keys"))
 	}
 
 	var signer crypto.Signer
