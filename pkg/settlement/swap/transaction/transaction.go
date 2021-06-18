@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethersphere/bee/pkg/sctx"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -190,6 +192,10 @@ func prepareTransaction(ctx context.Context, request *TxRequest, from common.Add
 		log.Infof("===============gasPrice==============", gasPrice)
 	}
 
+	if sctx.GetRedo(ctx) {
+		gasPrice.Mul(gasPrice, big.NewInt(2))
+	}
+
 	if request.To != nil {
 		return types.NewTransaction(
 			nonce,
@@ -230,12 +236,13 @@ func (t *transactionService) nextNonce(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 
+	if sctx.GetRedo(ctx) || nonce >= onchainNonce {
+		return nonce, nil
+	}
+
 	// If the nonce onchain is larger than what we have there were external
 	// transactions and we need to update our nonce.
-	if onchainNonce > nonce {
-		return onchainNonce, nil
-	}
-	return nonce, nil
+	return onchainNonce, nil
 }
 
 func (t *transactionService) putNonce(nonce uint64) error {

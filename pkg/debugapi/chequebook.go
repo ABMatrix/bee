@@ -36,6 +36,8 @@ var (
 
 	gasPriceHeader = "Gas-Price"
 	gasLimitHeader = "Gas-Limit"
+
+	redoCashoutHeader = "Redo-Cashout"
 )
 
 type chequebookBalanceResponse struct {
@@ -231,6 +233,15 @@ func (s *Service) swapCashoutHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		ctx = sctx.SetGasLimit(ctx, l)
+	}
+
+	if redoFlag, ok := r.Header[redoCashoutHeader]; ok {
+		redo, err := strconv.ParseBool(redoFlag[0])
+		if err != nil {
+			s.logger.Debugf("debug api: cash out: bad redo header: %v", err)
+			s.logger.Error("debug api: cash out: invalid redo flag")
+		}
+		ctx = sctx.SetRedo(ctx, redo)
 	}
 
 	txHash, err := s.swap.CashCheque(ctx, peer)
