@@ -27,6 +27,18 @@ func nonceKey(sender common.Address) string {
 	return fmt.Sprintf("transaction_nonce_%x", sender)
 }
 
+func wrapGasprice(gasprice *big.Int) *big.Int {
+	return transaction.IncreaseGasPrice(gasprice)
+}
+
+func TestIncreaseGasPrice(t *testing.T) {
+	gasprice := big.NewInt(20)
+	gasprice = transaction.IncreaseGasPrice(gasprice)
+	if gasprice.Cmp(big.NewInt(28)) != 0 {
+		t.Fatalf("wanted 28, got %d", gasprice)
+	}
+}
+
 func signerMockForTransaction(signedTx *types.Transaction, sender common.Address, signerChainID *big.Int, t *testing.T) crypto.Signer {
 	return signermock.New(
 		signermock.WithSignTxFunc(func(transaction *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
@@ -51,10 +63,10 @@ func signerMockForTransaction(signedTx *types.Transaction, sender common.Address
 			if transaction.Gas() != signedTx.Gas() {
 				t.Fatalf("signing transaction with wrong gas. wanted %d, got %d", signedTx.Gas(), transaction.Gas())
 			}
-			if transaction.GasPrice().Cmp(signedTx.GasPrice()) != 0 {
+			t.Logf("%d, %d", transaction.GasPrice(), signedTx.GasPrice())
+			if transaction.GasPrice().Cmp(wrapGasprice(signedTx.GasPrice())) != 0 {
 				t.Fatalf("signing transaction with wrong gasprice. wanted %d, got %d", signedTx.GasPrice(), transaction.GasPrice())
 			}
-
 			if transaction.Nonce() != signedTx.Nonce() {
 				t.Fatalf("signing transaction with wrong nonce. wanted %d, got %d", signedTx.Nonce(), transaction.Nonce())
 			}
@@ -73,7 +85,7 @@ func TestTransactionSend(t *testing.T) {
 	recipient := common.HexToAddress("0xabcd")
 	txData := common.Hex2Bytes("0xabcdee")
 	value := big.NewInt(1)
-	suggestedGasPrice := big.NewInt(2)
+	suggestedGasPrice := big.NewInt(20)
 	estimatedGasLimit := uint64(3)
 	nonce := uint64(2)
 	chainID := big.NewInt(5)
