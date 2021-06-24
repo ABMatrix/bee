@@ -47,8 +47,11 @@ func (c *command) initInitCmd() (err error) {
 				return err
 			}
 
-			dataDir := c.config.GetString(optionNameDataDir)
-			stateStore, err := node.InitStateStore(logger, dataDir)
+			var keyDir = c.config.GetString(optionNameKeyDir)
+			if keyDir == "" {
+				keyDir = c.config.GetString(optionNameDataDir)
+			}
+			stateStore, err := node.InitStateStore(logger, keyDir)
 			if err != nil {
 				return err
 			}

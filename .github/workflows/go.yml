@@ -55,14 +55,14 @@ jobs:
     - name: Test
       if: matrix.os == 'windows-latest'
       run: make test
-    - name: DeepSource Coverage
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        go test -coverprofile=cover.out ./...
-        curl https://deepsource.io/cli | sh
-        ./bin/deepsource report --analyzer test-coverage --key go --value-file ./cover.out
-      env:
-        DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
+#    - name: DeepSource Coverage
+#      if: matrix.os == 'ubuntu-latest'
+#      run: |
+#        go test -coverprofile=cover.out ./...
+#        curl https://deepsource.io/cli | sh
+#        ./bin/deepsource report --analyzer test-coverage --key go --value-file ./cover.out
+#      env:
+#        DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
     - name: Trigger Beekeeper
       if: github.ref == 'refs/heads/master' && matrix.os == 'ubuntu-latest' && success()
       uses: peter-evans/repository-dispatch@v1
